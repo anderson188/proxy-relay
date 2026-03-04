@@ -1,0 +1,12 @@
+{
+  "name": "proxy-relay",
+  "version": "1.0.0",
+  "description": "Proxy relay service for affiliate URL visits via rotating IP",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "https-proxy-agent": "^7.0.0"
+  }
+}
