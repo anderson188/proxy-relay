@@ -72,10 +72,13 @@ async function visitViaProxy(affiliateUrl, proxyUrl) {
     outboundIp = '检测失败: ' + e.message;
   }
 
+  const affiliateHost = new URL(affiliateUrl).hostname;
+  const NETWORK_HOSTS = ['awin1.com', 'awin.com', 'shareasale.com', 'prf.hn', 'pjtra.com', 'anrdoezrs.net', 'jdoqocy.com', 'tkqlhce.com', 'dpbolvw.net', 'kqzyfj.com'];
+
   let currentUrl = affiliateUrl;
   const hops = [];
   let lastLocation = '';
-  const maxHops = 10;
+  const maxHops = 6;
 
   for (let i = 0; i < maxHops; i++) {
     const result = await doRequest(currentUrl, agent);
@@ -88,6 +91,14 @@ async function visitViaProxy(affiliateUrl, proxyUrl) {
 
     try {
       const resolved = new URL(loc, currentUrl);
+      const locHost = resolved.hostname;
+      const isAffiliate = locHost === affiliateHost || NETWORK_HOSTS.some(d => locHost.endsWith(d));
+
+      if (!isAffiliate && resolved.search.length > 1) {
+        hops.push(`[停止] 已获取目标站参数，不再跟踪后续跳转（节省流量）`);
+        break;
+      }
+
       currentUrl = resolved.href;
     } catch {
       break;
@@ -143,10 +154,8 @@ function doRequest(url, agent) {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
       },
-      followRedirects: false,
-      maxRedirects: 0,
     }, (res) => {
-      res.resume();
+      res.destroy();
       resolve({
         statusCode: res.statusCode,
         location: res.headers['location'] || '',
